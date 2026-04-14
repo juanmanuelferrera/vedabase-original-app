@@ -156,6 +156,7 @@ function setNav(opts){var n=document.getElementById('bottomNav');if(!opts){n.cla
 
 const COVERS={bg:'en-bg.2e16d0ba.fill-320x508.jpg',sb:'en-sb-1.2e16d0ba.fill-320x508.jpg',cc:'en-cc-adi.2e16d0ba.fill-320x508.jpg',iso:'en-iso.2e16d0ba.fill-320x508.jpg',noi:'en-noi.2e16d0ba.fill-320x508.jpg',nod:'en-nod.2e16d0ba.fill-320x508.jpg',kb:'en-kb.2e16d0ba.fill-320x508.jpg',ssr:'en-ssr.2e16d0ba.fill-320x508.jpg',bbd:'en-bbd.2e16d0ba.fill-320x508.jpg',tlc:'en-tlc.2e16d0ba.fill-320x508.jpg',tlk:'en-tlk.2e16d0ba.fill-320x508.jpg',tqk:'en-tqk.2e16d0ba.fill-320x508.jpg',pop:'en-pop.2e16d0ba.fill-320x508.jpg',poy:'en-poy.2e16d0ba.fill-320x508.jpg',pqpa:'en-pqpa.2e16d0ba.fill-320x508.jpg',rv:'en-rv.2e16d0ba.fill-320x508.jpg',owk:'en-owk.2e16d0ba.fill-320x508.jpg',lob:'en-lob.2e16d0ba.fill-320x508.jpg',bs:'en-bs.2e16d0ba.fill-320x508.jpg',ejop:'en-ejop.2e16d0ba.fill-320x508.jpg',ekc:'en-ekc.2e16d0ba.fill-320x508.jpg',lcfl:'en-lcfl.2e16d0ba.fill-320x508.jpg',rop:'en-rop.2e16d0ba.fill-320x508.jpg',tpm:'en-tpm.2e16d0ba.fill-320x508.jpg',tys:'en-tys.2e16d0ba.fill-320x508.jpg'};
 const ORDER=['bg','sb','cc','noi','kb','nod','iso','ssr','bbd','bs','owk','pop','poy','pqpa','rv','tlc','tlk','tqk','lob','ejop','ekc','lcfl','rop','tpm','tys'];
+const CH_TITLES={'bg/1':'Observing the Armies on the Battlefield of Kurukṣetra','bg/2':'Contents of the Gītā Summarized','bg/3':'Karma-yoga','bg/4':'Transcendental Knowledge','bg/5':'Karma-yoga — Action in Kṛṣṇa Consciousness','bg/6':'Dhyāna-yoga','bg/7':'Knowledge of the Absolute','bg/8':'Attaining the Supreme','bg/9':'The Most Confidential Knowledge','bg/10':'The Opulence of the Absolute','bg/11':'The Universal Form','bg/12':'Devotional Service','bg/13':'Nature, the Enjoyer and Consciousness','bg/14':'The Three Modes of Material Nature','bg/15':'The Yoga of the Supreme Person','bg/16':'The Divine and Demoniac Natures','bg/17':'The Divisions of Faith','bg/18':'Conclusion — The Perfection of Renunciation'};
 const BK={bg:'Bhagavad-gītā As It Is',sb:'Śrīmad-Bhāgavatam',cc:'Śrī Caitanya-caritāmṛta',noi:'Nectar of Instruction',kb:'Kṛṣṇa, the Supreme Personality of Godhead',nod:'The Nectar of Devotion',iso:'Śrī Īśopaniṣad',ssr:'The Science of Self-Realization',bbd:'Beyond Birth and Death',bs:'Śrī Brahma-saṁhitā',owk:'On the Way to Kṛṣṇa',pop:'The Path of Perfection',poy:'The Perfection of Yoga',pqpa:'Perfect Questions, Perfect Answers',rv:'Rāja-vidyā: The King of Knowledge',tlc:'Teachings of Lord Caitanya',tlk:'Teachings of Lord Kapila',tqk:'Teachings of Queen Kuntī',lob:'Light of the Bhāgavata',ejop:'Easy Journey to Other Planets',ekc:'Elevation to Kṛṣṇa Consciousness',lcfl:'Life Comes from Life',rop:'Kṛṣṇa, the Reservoir of Pleasure',tpm:'Transcendental Teachings of Prahlāda Mahārāja',tys:'Kṛṣṇa Consciousness: The Topmost Yoga System',transcripts:'Transcripts',letters:'Letters'};
 
 function navigate(p,a){setNav(null);var app=document.getElementById('app');if(p==='library')showLibrary(app);else if(p==='search')showSearch(app,a);else if(p==='about')showAbout(app)}
@@ -233,9 +234,14 @@ async function showBook(slug){
   if(!refs.length){h+='<p style="text-align:center;opacity:0.6">No content available.</p>';app.innerHTML=h;return}
   refs.sort((a,b)=>{var pa=a.replace(slug+'/','').split('/').map(Number),pb=b.replace(slug+'/','').split('/').map(Number);for(var i=0;i<Math.max(pa.length,pb.length);i++)if((pa[i]||0)!==(pb[i]||0))return(pa[i]||0)-(pb[i]||0);return 0});
   var depth=Math.max(...refs.map(r=>r.replace(slug+'/','').split('/').length));
-  if(depth<=1){for(var r of refs){var n=r.replace(slug+'/','');var v=verses.find(x=>x.ref===r);var label=(v&&v.t&&!(/^Chapter\s+\d+$/i.test(v.t.trim())))?v.t.replace(/\n.*/,''):((slug==='letters'||slug==='transcripts')?n.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'Chapter '+n);h+='<a class="ch-link" href="#" onclick="showVerse(\''+r+'\')">'+label+'</a>'}}
-  else if(depth===2){var chs={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!chs[p[0]])chs[p[0]]=0;chs[p[0]]++}for(var c in chs)h+='<a class="ch-link" href="#" onclick="showChapter(\''+slug+'\',\''+c+'\')">Chapter '+c+'<span class="ch-count">('+chs[c]+' verses)</span></a>'}
-  else{var cantos={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!cantos[p[0]])cantos[p[0]]=new Set();if(p[1])cantos[p[0]].add(p[1])}var lbl=slug==='cc'?'Section':'Canto';for(var c in cantos)h+='<a class="ch-link" href="#" onclick="showCanto(\''+slug+'\',\''+c+'\')">'+lbl+' '+c+'<span class="ch-count">('+cantos[c].size+' chapters)</span></a>'}
+  if(depth<=1){for(var r of refs){var n=r.replace(slug+'/','');var v=verses.find(x=>x.ref===r);var label;
+    if(slug==='letters'||slug==='transcripts'){label=(v&&v.t)?v.t.replace(/\n.*/,''):n.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})}
+    else if(slug==='iso')label='Mantra '+n;
+    else if(v&&v.t&&!(/^Chapter\s+\d+$/i.test(v.t.trim())))label=v.t.replace(/\n.*/,'');
+    else label='Chapter '+n;
+    h+='<a class="ch-link" href="#" onclick="showVerse(\''+r+'\')">'+label+'</a>'}}
+  else if(depth===2){var chs={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!chs[p[0]])chs[p[0]]=0;chs[p[0]]++}for(var c in chs){var ct=CH_TITLES[slug+'/'+c];h+='<a class="ch-link" href="#" onclick="showChapter(\''+slug+'\',\''+c+'\')">Chapter '+c+(ct?': '+ct:'')+'</a>'}}
+  else{var cantos={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!cantos[p[0]])cantos[p[0]]=new Set();if(p[1])cantos[p[0]].add(p[1])}var lbl=slug==='cc'?'Section':'Canto';for(var c in cantos)h+='<a class="ch-link" href="#" onclick="showCanto(\''+slug+'\',\''+c+'\')">'+lbl+' '+c+'</a>'}
   app.innerHTML=h;
 }
 
@@ -245,7 +251,7 @@ async function showCanto(slug,canto){
   var h='<div class="breadcrumb"><a href="#" onclick="navigate(\'library\')">Library</a> » <a href="#" onclick="showBook(\''+slug+'\')">'+name+'</a></div><h1>'+lbl+' '+canto+'</h1>';
   var chs={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(p[0]===canto&&p[1]){if(!chs[p[1]])chs[p[1]]=0;chs[p[1]]++}}
   var sorted=Object.keys(chs).sort((a,b)=>(parseInt(a)||0)-(parseInt(b)||0));
-  for(var ch of sorted)h+='<a class="ch-link" href="#" onclick="showChapter(\''+slug+'\',\''+canto+'/'+ch+'\')">Chapter '+ch+'<span class="ch-count">('+chs[ch]+' verses)</span></a>';
+  for(var ch of sorted)h+='<a class="ch-link" href="#" onclick="showChapter(\''+slug+'\',\''+canto+'/'+ch+'\')">Chapter '+ch+'</a>';
   app.innerHTML=h;
 }
 
