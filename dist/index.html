@@ -154,7 +154,7 @@ function joinLines(s){if(!s)return'';return s.replace(/\n\n+/g,'</p><p>').replac
 
 function setNav(opts){var n=document.getElementById('bottomNav');if(!opts){n.classList.remove('active');document.body.classList.remove('has-bottom-nav');return}var h='';if(opts.prev)h+='<a href="#" onclick="'+opts.prev.action+'">← '+opts.prev.label+'</a>';else h+='<div></div>';h+='<span class="center">'+(opts.center||'')+'</span>';if(opts.next)h+='<a href="#" onclick="'+opts.next.action+'">'+opts.next.label+' →</a>';else h+='<div></div>';n.innerHTML=h;n.classList.add('active');document.body.classList.add('has-bottom-nav')}
 
-const COVERS={bg:'en-bg.2e16d0ba.fill-320x508.jpg',sb:'en-sb-1.2e16d0ba.fill-320x508.jpg',cc:'en-cc-adi.2e16d0ba.fill-320x508.jpg',iso:'en-iso.2e16d0ba.fill-320x508.jpg',noi:'en-noi.2e16d0ba.fill-320x508.jpg',nod:'en-nod.2e16d0ba.fill-320x508.jpg',kb:'en-kb.2e16d0ba.fill-320x508.jpg',ssr:'en-ssr.2e16d0ba.fill-320x508.jpg',bbd:'en-bbd.2e16d0ba.fill-320x508.jpg',tlc:'en-tlc.2e16d0ba.fill-320x508.jpg',tlk:'en-tlk.2e16d0ba.fill-320x508.jpg',tqk:'en-tqk.2e16d0ba.fill-320x508.jpg',pop:'en-pop.2e16d0ba.fill-320x508.jpg',poy:'en-poy.2e16d0ba.fill-320x508.jpg',pqpa:'en-pqpa.2e16d0ba.fill-320x508.jpg',rv:'en-rv.2e16d0ba.fill-320x508.jpg',owk:'en-owk.2e16d0ba.fill-320x508.jpg',lob:'en-lob.2e16d0ba.fill-320x508.jpg',bs:'en-bs.2e16d0ba.fill-320x508.jpg',ejop:'en-ejop.2e16d0ba.fill-320x508.jpg',ekc:'en-ekc.2e16d0ba.fill-320x508.jpg',lcfl:'en-lcfl.2e16d0ba.fill-320x508.jpg',rop:'en-rop.2e16d0ba.fill-320x508.jpg',tpm:'en-tpm.2e16d0ba.fill-320x508.jpg',tys:'en-tys.2e16d0ba.fill-320x508.jpg'};
+const COVERS={bg:'en-bg.2e16d0ba.fill-320x508.jpg',sb:'en-sb-1.2e16d0ba.fill-320x508.jpg',cc:'en-cc-adi.2e16d0ba.fill-320x508.jpg',iso:'en-iso.2e16d0ba.fill-320x508.jpg',noi:'en-noi.2e16d0ba.fill-320x508.jpg',nod:'en-nod.2e16d0ba.fill-320x508.jpg',kb:'en-kb.2e16d0ba.fill-320x508.jpg',ssr:'en-ssr.2e16d0ba.fill-320x508.jpg',bbd:'en-bbd.2e16d0ba.fill-320x508.jpg',tlc:'en-tlc.2e16d0ba.fill-320x508.jpg',tlk:'en-tlk.2e16d0ba.fill-320x508.jpg',tqk:'en-tqk.2e16d0ba.fill-320x508.jpg',pop:'en-pop.2e16d0ba.fill-320x508.jpg',poy:'en-poy.2e16d0ba.fill-320x508.jpg',pqpa:'en-pqpa.2e16d0ba.fill-320x508.jpg',rv:'en-rv.2e16d0ba.fill-320x508.jpg',owk:'en-owk.2e16d0ba.fill-320x508.jpg',lob:'en-lob.2e16d0ba.fill-320x508.jpg',bs:'en-bs.2e16d0ba.fill-320x508.jpg',ejop:'en-ejop.2e16d0ba.fill-320x508.jpg',ekc:'en-ekc.2e16d0ba.fill-320x508.jpg',lcfl:'en-lcfl.2e16d0ba.fill-320x508.jpg',rop:'en-rop.2e16d0ba.fill-320x508.jpg',tpm:'en-tpm.2e16d0ba.fill-320x508.jpg',tys:'en-tys.2e16d0ba.fill-320x508.jpg',transcripts:'en-transcripts.png',letters:'en-letters.jpg'};
 const ORDER=['bg','sb','cc','noi','kb','nod','iso','ssr','bbd','bs','owk','pop','poy','pqpa','rv','tlc','tlk','tqk','lob','ejop','ekc','lcfl','rop','tpm','tys'];
 const CH_TITLES={'bg/1':'Observing the Armies on the Battlefield of Kurukṣetra','bg/2':'Contents of the Gītā Summarized','bg/3':'Karma-yoga','bg/4':'Transcendental Knowledge','bg/5':'Karma-yoga — Action in Kṛṣṇa Consciousness','bg/6':'Dhyāna-yoga','bg/7':'Knowledge of the Absolute','bg/8':'Attaining the Supreme','bg/9':'The Most Confidential Knowledge','bg/10':'The Opulence of the Absolute','bg/11':'The Universal Form','bg/12':'Devotional Service','bg/13':'Nature, the Enjoyer and Consciousness','bg/14':'The Three Modes of Material Nature','bg/15':'The Yoga of the Supreme Person','bg/16':'The Divine and Demoniac Natures','bg/17':'The Divisions of Faith','bg/18':'Conclusion — The Perfection of Renunciation'};
 const BK={bg:'Bhagavad-gītā As It Is',sb:'Śrīmad-Bhāgavatam',cc:'Śrī Caitanya-caritāmṛta',noi:'Nectar of Instruction',kb:'Kṛṣṇa, the Supreme Personality of Godhead',nod:'The Nectar of Devotion',iso:'Śrī Īśopaniṣad',ssr:'The Science of Self-Realization',bbd:'Beyond Birth and Death',bs:'Śrī Brahma-saṁhitā',owk:'On the Way to Kṛṣṇa',pop:'The Path of Perfection',poy:'The Perfection of Yoga',pqpa:'Perfect Questions, Perfect Answers',rv:'Rāja-vidyā: The King of Knowledge',tlc:'Teachings of Lord Caitanya',tlk:'Teachings of Lord Kapila',tqk:'Teachings of Queen Kuntī',lob:'Light of the Bhāgavata',ejop:'Easy Journey to Other Planets',ekc:'Elevation to Kṛṣṇa Consciousness',lcfl:'Life Comes from Life',rop:'Kṛṣṇa, the Reservoir of Pleasure',tpm:'Transcendental Teachings of Prahlāda Mahārāja',tys:'Kṛṣṇa Consciousness: The Topmost Yoga System',transcripts:'Transcripts',letters:'Letters'};
@@ -164,8 +164,8 @@ function navigate(p,a){setNav(null);var app=document.getElementById('app');if(p=
 function showLibrary(app){
   var h='<h1>Library</h1><div class="lib-grid">';
   for(var s of ORDER){h+='<div class="book-card" onclick="showBook(\''+s+'\')">';if(COVERS[s])h+='<img src="images/'+COVERS[s]+'" alt="'+BK[s]+'">';h+='<span>'+BK[s]+'</span></div>'}
-  h+='<div class="book-card" onclick="showBook(\'transcripts\')"><div class="placeholder-cover">Transcripts</div><span>Transcripts</span></div>';
-  h+='<div class="book-card" onclick="showBook(\'letters\')"><div class="placeholder-cover">Letters</div><span>Letters</span></div>';
+  h+='<div class="book-card" onclick="showBook(\'transcripts\')"><img src="images/'+COVERS.transcripts+'" alt="Transcripts"><span>Transcripts</span></div>';
+  h+='<div class="book-card" onclick="showBook(\'letters\')"><img src="images/'+COVERS.letters+'" alt="Letters"><span>Letters</span></div>';
   h+='</div>';app.innerHTML=h;
 }
 
@@ -299,9 +299,22 @@ async function showVerse(ref,highlight){
       if(!bodyStart){for(var li=0;li<lines.length;li++){if(lines[li].trim().match(/^(Prabhupāda|Prabhupada|Devotee|Guest|Reporter|Dr\.):/)){bodyStart=li;break}}}
       if(!bodyStart){for(var li=5;li<lines.length;li++){if(lines[li].trim().length>60){bodyStart=li;break}}}
       if(date||location)h+='<p style="text-align:center;opacity:0.7;font-size:0.95em;margin-bottom:8px">'+date+(location?' — '+location:'')+'</p>';
-      if(audioFile||v.a)h+='<div style="margin:12px auto 20px;max-width:500px"><audio controls preload="none" style="width:100%;height:40px"><source src="https://vedabase.site/media/audio/'+(v.a||audioFile)+'" type="audio/mpeg"></audio></div>';
-      var body=lines.slice(bodyStart).join('\n');
-      if(slug==='transcripts')h+='<p>'+joinLines(body)+'</p>';
+      if(audioFile||v.a){var af=v.a||audioFile;var yr='19'+af.substring(0,2);h+='<div style="margin:12px auto 20px;max-width:500px"><audio controls preload="none" style="width:100%;height:40px"><source src="https://vedabase.site/media/audio/transcripts/'+yr+'/'+af+'" type="audio/mpeg"></audio><div style="text-align:center;font-size:0.8em;opacity:0.5;margin-top:4px">Audio requires internet connection</div></div>';}
+      var bodyLines=lines.slice(bodyStart);
+      // Merge bracket references split across lines
+      var raw=bodyLines.join('\n');
+      raw=raw.replace(/\[([^\]]*)\]/g,function(m){return m.replace(/\s*\n\s*/g,' ')});
+      var bl2=raw.split('\n');
+      // Merge short inline lines (Sanskrit terms) with neighbors
+      var merged=[];
+      for(var bi=0;bi<bl2.length;bi++){
+        var cur=bl2[bi].trim();if(!cur)continue;
+        var isShort=cur.length<50&&!/^\[/.test(cur)&&!/^Prabhupāda:|^Devotee:|^Guest:|^Reporter:/.test(cur);
+        if(isShort&&merged.length>0){merged[merged.length-1]+=' '+cur}
+        else{merged.push(cur)}
+      }
+      var body=merged.join('\n');
+      if(slug==='transcripts')h+='<p>'+body.replace(/\n/g,'</p><p>')+'</p>';
       else h+='<p>'+body.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')+'</p>'}
   } else {
     var vnLabel=vn.replace(/\//g,'.');var isSingleLevel=pts.length===1;
