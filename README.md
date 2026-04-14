@@ -67,3 +67,4 @@ npm run dev
 
 - [vedabase-site](https://github.com/juanmanuelferrera/vedabase-site) — The web version at [vedabase.site](https://vedabase.site)
 - [vedabase-original](https://github.com/juanmanuelferrera/vedabase-original) — Corrected markdown source texts
+- [vedabase-app](https://github.com/juanmanuelferrera/vedabase-app) — Previous desktop app (v3.0)
