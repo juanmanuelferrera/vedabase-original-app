@@ -29,12 +29,14 @@ src-tauri/
 
 All content is embedded in the app binary — no internet required.
 
-## Prerequisites
+## Prerequisites (build only)
 
-- [Node.js](https://nodejs.org/) 18+
-- [Rust](https://rustup.rs/) 1.77+
+These are needed to build the app, not to run it. The final `.dmg` is a standalone native app with no dependencies.
+
+- [Node.js](https://nodejs.org/) 18+ (for data extraction scripts)
+- [Rust](https://rustup.rs/) 1.77+ (for Tauri compilation)
 - [Tauri CLI](https://tauri.app/start/) 2.x
-- `vedabase-site` repo at `../vedabase-site/` (for data extraction)
+- `vedabase-site` repo at `../vedabase-site/` (source of R2 HTML and SQL data)
 
 ## Build
 
