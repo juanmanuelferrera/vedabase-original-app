@@ -1,6 +1,6 @@
 [package]
 name = "vedabase-app"
-version = "0.2.0"
+version = "0.2.1"
 description = "The original unchanged books of Śrīla Prabhupāda — offline desktop reader"
 authors = ["Vedabase Original"]
 license = "MIT"

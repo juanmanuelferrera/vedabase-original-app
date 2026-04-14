@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#da9d5b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Vedabase Original</title>
 <style>
 :root{--bg:#f3d4a5;--header:#da9d5b;--header2:#c48a3f;--dark:#a16207;--text:#1a1a1a;--link:#b91c1c;--action:#0f766e;--action-text:#fff;--font-serif:Georgia,'Times New Roman',serif;--font-sans:system-ui,-apple-system,sans-serif;--fs:1em}
@@ -113,6 +118,8 @@ p{margin-bottom:16px;line-height:1.7;text-align:justify}
   <a href="#" onclick="navigate('library')">Library</a>
   <a href="#" onclick="navigate('search')">Search</a>
   <a href="#" onclick="navigate('about')">About</a>
+  <a href="#" id="installBtn" onclick="installPWA()" style="display:none;background:var(--action);color:var(--action-text);padding:2px 10px;border-radius:4px;text-decoration:none;font-size:0.85em">Install App</a>
+  <span onclick="document.getElementById('installInfo').style.display='flex'" style="cursor:pointer;opacity:0.7;font-size:1.1em" title="Install as app">&#9432;</span>
   <div class="hdr-spacer"></div>
   <div class="nav2-search">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="4"/><path d="m11 11-2.5-2.5"/></svg>
@@ -123,6 +130,17 @@ p{margin-bottom:16px;line-height:1.7;text-align:justify}
 <div class="main" id="app"><div class="loading">Loading...</div></div>
 <div class="bottom-nav" id="bottomNav"></div>
 
+<div id="installInfo" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg);color:var(--text);padding:24px;border-radius:12px;max-width:400px;margin:16px;box-shadow:0 4px 20px rgba(0,0,0,0.3)">
+    <h3 style="margin-bottom:4px">Install Vedabase Original</h3>
+    <p style="margin-bottom:12px;font-size:0.95em">Install as a standalone app and read all books <strong>offline, without internet</strong>.</p>
+    <p style="margin-bottom:8px"><strong>iPhone / iPad</strong><br>Tap Share (square with arrow) then "Add to Home Screen"</p>
+    <p style="margin-bottom:8px"><strong>Android</strong><br>Tap ⋮ menu in Chrome, then "Install app"</p>
+    <p style="margin-bottom:8px"><strong>Windows / Mac</strong><br>In Chrome or Edge, click the install icon in the address bar</p>
+    <p style="font-size:0.85em;opacity:0.6;margin-top:12px">After installing, all books work offline. Only audio requires internet.</p>
+    <button onclick="document.getElementById('installInfo').style.display='none'" style="margin-top:16px;padding:8px 20px;background:var(--action);color:var(--action-text);border:none;border-radius:6px;cursor:pointer;font-size:1em">Got it</button>
+  </div>
+</div>
 <div class="overlay" id="vbOverlay" onclick="toggleSettings()"></div>
 <div class="settings" id="vbSettings">
   <button class="s-close" onclick="toggleSettings()">ESC &times;</button>
@@ -146,7 +164,10 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.ge
 
 // Data
 const bookCache={};const verseMap={};let searchIndex=null;
-async function loadBook(slug){if(bookCache[slug])return bookCache[slug];var r=await fetch('books/'+slug+'.json');if(!r.ok)return null;var v=await r.json();
+async function loadBook(slug){if(bookCache[slug])return bookCache[slug];var v;
+  var chunks={'transcripts':4,'sb':3};
+  if(chunks[slug]){v=[];for(var ci=0;ci<chunks[slug];ci++){var cr=await fetch('books/'+slug+'-'+ci+'.json');if(cr.ok){var cd=await cr.json();v=v.concat(cd)}}}
+  else{var r=await fetch('books/'+slug+'.json');if(!r.ok)return null;v=await r.json()}
   v.sort(function(a,b){var pa=a.ref.replace(slug+'/','').split('/').map(Number),pb=b.ref.replace(slug+'/','').split('/').map(Number);for(var i=0;i<Math.max(pa.length,pb.length);i++){if((pa[i]||0)!==(pb[i]||0))return(pa[i]||0)-(pb[i]||0)}return 0});
   bookCache[slug]=v;var m=new Map();v.forEach(x=>m.set(x.ref,x));verseMap[slug]=m;return v}
 async function loadSearchIndex(){if(searchIndex)return searchIndex;var r=await fetch('books/search-index.json');searchIndex=await r.json();return searchIndex}
@@ -322,7 +343,7 @@ async function showVerse(ref,highlight){
     else if(isSingleLevel)vnLabel='Chapter '+vn;
     h+='<h1>'+name+'</h1><p style="text-align:center;font-size:1.2em;margin-bottom:16px">'+vnLabel+'</p>';
     if(v.d)h+='<div style="text-align:center;font-size:1.15em;margin:1em 0 0.5em;white-space:pre-line">'+v.d+'</div>';
-    if(v.v)h+='<div class="verse-text">'+v.v+'</div>';
+    if(v.v){var vw=v.v.split(' '),vl=vw.length,q=Math.ceil(vl/4);var vt=[];for(var vi=0;vi<vl;vi+=q)vt.push(vw.slice(vi,vi+q).join(' '));h+='<div class="verse-text">'+vt.join('\n')+'</div>';}
     if(v.s){var syn=v.s.replace(/\n(—)/g,' $1').replace(/;\n/g,'; ').replace(/(^|;\s*)([^—;]+?)\s*(—)/g,'$1<i>$2</i> $3');h+='<h2>Synonyms</h2><div class="synonyms">'+syn+'</div>';}
     if(v.t)h+='<h2>Translation</h2><div class="translation">'+joinLines(v.t)+'</div>';
     if(v.p)h+='<h2>Purport</h2><p>'+joinLines(v.p)+'</p>';
@@ -345,5 +366,13 @@ function showAbout(app){
 }
 
 navigate('library');
+</script>
+<script>
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block'});
+window.addEventListener('appinstalled',function(){document.getElementById('installBtn').style.display='none';deferredPrompt=null});
+function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(r){deferredPrompt=null;document.getElementById('installBtn').style.display='none'})}}
+if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)document.getElementById('installBtn').style.display='none';
 </script>
 </html>

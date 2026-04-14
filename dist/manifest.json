@@ -1,0 +1,28 @@
+{
+  "name": "Vedabase Original",
+  "short_name": "Vedabase",
+  "description": "The original unchanged books of Srila Prabhupada",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3d4a5",
+  "theme_color": "#da9d5b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
