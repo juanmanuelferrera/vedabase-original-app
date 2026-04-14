@@ -286,19 +286,19 @@ async function showVerse(ref,highlight){
     var title=(v.t||'').replace(/\n.*/,'');
     h+='<h1 style="font-size:1.5em">'+title+'</h1>';
     if(v.p){var content=v.p;
-      // Parse letter header: extract date, location, skip duplicate metadata
-      var lines=content.split('\n');var bodyStart=0;var date='',location='';
+      var lines=content.split('\n');var bodyStart=0;var date='',location='',audioFile='';
+      // Parse header metadata
       for(var li=0;li<Math.min(lines.length,20);li++){
         var ln=lines[li].trim();
         if(ln.startsWith('Dated:'))date=ln.replace('Dated:','').trim();
         else if(ln.startsWith('Location:'))location=ln.replace('Location:','').trim();
-        else if(ln.match(/^(My dear|Dear |Please accept)/)){bodyStart=li;break}
-        else if(ln.match(/^\d{2}-\d{2}-\d{2}$/)){continue}
-        else if(li>0&&ln.match(/^[A-Z][a-z]/)&&lines[li-1]&&lines[li-1].match(/Letter to:|Sriman|Srimati|Sri /)){continue}
+        else if(ln.startsWith('Audio file:'))audioFile=ln.replace('Audio file:','').trim();
+        else if(ln.match(/^(My dear|Dear |Please accept|Prabhupāda:)/)){bodyStart=li;break}
+        else if(ln.match(/^Type:|^\d{2}-\d{2}-\d{2}$|^Letter to:|^Sriman|^Srimati|\.mp3$/)){continue}
       }
-      if(!bodyStart)for(var li=0;li<lines.length;li++){if(lines[li].trim().length>80){bodyStart=li;break}}
+      if(!bodyStart){for(var li=0;li<lines.length;li++){if(lines[li].trim().match(/^(Prabhupāda|Prabhupada|Devotee|Guest|Reporter|Dr\.):/)){bodyStart=li;break}}}
+      if(!bodyStart){for(var li=5;li<lines.length;li++){if(lines[li].trim().length>60){bodyStart=li;break}}}
       if(date||location)h+='<p style="text-align:center;opacity:0.7;font-size:0.95em;margin-bottom:16px">'+date+(location?' — '+location:'')+'</p>';
-      // Render body — transcripts flow as paragraphs, letters keep line breaks
       var body=lines.slice(bodyStart).join('\n');
       if(slug==='transcripts')h+='<p>'+joinLines(body)+'</p>';
       else h+='<p>'+body.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')+'</p>'}
