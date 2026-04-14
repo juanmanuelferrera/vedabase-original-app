@@ -292,13 +292,14 @@ async function showVerse(ref,highlight){
         var ln=lines[li].trim();
         if(ln.startsWith('Dated:'))date=ln.replace('Dated:','').trim();
         else if(ln.startsWith('Location:'))location=ln.replace('Location:','').trim();
-        else if(ln.startsWith('Audio file:'))audioFile=ln.replace('Audio file:','').trim();
+        else if(ln.startsWith('Audio file:')){audioFile=ln.replace('Audio file:','').trim();continue}
         else if(ln.match(/^(My dear|Dear |Please accept|Prabhupāda:)/)){bodyStart=li;break}
         else if(ln.match(/^Type:|^\d{2}-\d{2}-\d{2}$|^Letter to:|^Sriman|^Srimati|\.mp3$/)){continue}
       }
       if(!bodyStart){for(var li=0;li<lines.length;li++){if(lines[li].trim().match(/^(Prabhupāda|Prabhupada|Devotee|Guest|Reporter|Dr\.):/)){bodyStart=li;break}}}
       if(!bodyStart){for(var li=5;li<lines.length;li++){if(lines[li].trim().length>60){bodyStart=li;break}}}
-      if(date||location)h+='<p style="text-align:center;opacity:0.7;font-size:0.95em;margin-bottom:16px">'+date+(location?' — '+location:'')+'</p>';
+      if(date||location)h+='<p style="text-align:center;opacity:0.7;font-size:0.95em;margin-bottom:8px">'+date+(location?' — '+location:'')+'</p>';
+      if(audioFile||v.a)h+='<div style="margin:12px auto 20px;max-width:500px"><audio controls preload="none" style="width:100%;height:40px"><source src="https://vedabase.site/media/audio/'+(v.a||audioFile)+'" type="audio/mpeg"></audio></div>';
       var body=lines.slice(bodyStart).join('\n');
       if(slug==='transcripts')h+='<p>'+joinLines(body)+'</p>';
       else h+='<p>'+body.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')+'</p>'}

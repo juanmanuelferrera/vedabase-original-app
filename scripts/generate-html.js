@@ -69,12 +69,20 @@ for (const [slug, name] of Object.entries(BOOKS)) {
       }
     }
 
+    // Extract audio file from raw purport before cleaning
+    var audio;
+    if (slug === 'transcripts' || slug === 'letters') {
+      var audioMatch = (r.purport || '').match(/Audio file:\s*\n?\s*([^\n]+\.mp3)/i);
+      if (audioMatch) audio = audioMatch[1].trim();
+    }
+
     return {
       ref: r.ref,
       v: vt || undefined,
       s: sy || undefined,
       t: tr || undefined,
       p: pu || undefined,
+      a: audio || undefined,
     };
   });
 
