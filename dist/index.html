@@ -119,7 +119,7 @@ p{margin-bottom:16px;line-height:1.7;text-align:justify}
   <a href="#" onclick="navigate('search')">Search</a>
   <a href="#" onclick="navigate('about')">About</a>
   <a href="#" id="installBtn" onclick="installPWA()" style="display:none;background:var(--action);color:var(--action-text);padding:2px 10px;border-radius:4px;text-decoration:none;font-size:0.85em">Install App</a>
-  <span onclick="document.getElementById('installInfo').style.display='flex'" style="cursor:pointer;opacity:0.7;font-size:1.1em" title="Install as app">&#9432;</span>
+  <span id="installIcon" onclick="document.getElementById('installInfo').style.display='flex'" style="display:none;cursor:pointer;opacity:0.7;font-size:1.1em" title="Install as app">&#9432;</span>
   <div class="hdr-spacer"></div>
   <div class="nav2-search">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="4"/><path d="m11 11-2.5-2.5"/></svg>
@@ -159,7 +159,13 @@ function save(k,v){var s=JSON.parse(localStorage.getItem('vbSettings')||'{}');s[
 function toggleSettings(){document.getElementById('vbSettings').classList.toggle('open');document.getElementById('vbOverlay').classList.toggle('open')}
 function setFont(n){var h=document.documentElement;for(var i=1;i<=9;i++)h.classList.remove('font-size-'+i);h.classList.add('font-size-'+n);var sl=document.getElementById('vbFontSize');if(sl)sl.value=n;save('fontSize',n)}
 function tog(type){var h=document.documentElement;if(type==='dark'){var el=document.getElementById('togDark');el.classList.toggle('on');h.classList.toggle('vb-dark');save('dark',el.classList.contains('on'))}else if(type==='justify'){var el=document.getElementById('togJustify');el.classList.toggle('on');document.body.style.textAlign=el.classList.contains('on')?'':'left';save('justify',el.classList.contains('on'))}else if(type==='serif'){var el=document.getElementById('togSerif');el.classList.toggle('on');h.classList.toggle('sans');save('serif',el.classList.contains('on'))}}
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.getElementById('vbSettings').classList.remove('open');document.getElementById('vbOverlay').classList.remove('open')}});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){document.getElementById('vbSettings').classList.remove('open');document.getElementById('vbOverlay').classList.remove('open')}
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  var nav=document.getElementById('bottomNav');if(!nav)return;
+  if(e.key==='ArrowLeft'){var prev=nav.querySelector('a:first-child');if(prev)prev.click()}
+  if(e.key==='ArrowRight'){var next=nav.querySelector('a:last-child');if(next)next.click()}
+});
 (function(){var s=JSON.parse(localStorage.getItem('vbSettings')||'{}');if(s.fontSize)setFont(s.fontSize);if(s.dark)tog('dark');if(s.justify===false)tog('justify');if(s.serif===false)tog('serif')})();
 
 // Data
@@ -168,12 +174,24 @@ async function loadBook(slug){if(bookCache[slug])return bookCache[slug];var v;
   var chunks={'transcripts':4,'sb':3};
   if(chunks[slug]){v=[];for(var ci=0;ci<chunks[slug];ci++){var cr=await fetch('books/'+slug+'-'+ci+'.json');if(cr.ok){var cd=await cr.json();v=v.concat(cd)}}}
   else{var r=await fetch('books/'+slug+'.json');if(!r.ok)return null;v=await r.json()}
-  v.sort(function(a,b){var pa=a.ref.replace(slug+'/','').split('/').map(Number),pb=b.ref.replace(slug+'/','').split('/').map(Number);for(var i=0;i<Math.max(pa.length,pb.length);i++){if((pa[i]||0)!==(pb[i]||0))return(pa[i]||0)-(pb[i]||0)}return 0});
+  var _co={'adi':1,'madhya':2,'antya':3};
+  v.sort(function(a,b){var pa=a.ref.replace(slug+'/','').split('/'),pb=b.ref.replace(slug+'/','').split('/');for(var i=0;i<Math.max(pa.length,pb.length);i++){var na=_co[pa[i]]||parseInt(pa[i])||0,nb=_co[pb[i]]||parseInt(pb[i])||0;if(na!==nb)return na-nb}return 0});
   bookCache[slug]=v;var m=new Map();v.forEach(x=>m.set(x.ref,x));verseMap[slug]=m;return v}
 async function loadSearchIndex(){if(searchIndex)return searchIndex;var r=await fetch('books/search-index.json');searchIndex=await r.json();return searchIndex}
-function joinLines(s){if(!s)return'';return s.replace(/\n\n+/g,'</p><p>').replace(/\n/g,' ').replace(/<\/i>\s*<i>/g,' ').trim()}
+function joinLines(s){if(!s)return'';
+  s=s.replace(/\[([^\]]*)\]/g,function(m){return m.replace(/\s*\n\s*/g,' ')});
+  var lines=s.split('\n'),merged=[],i=0;
+  while(i<lines.length){var l=lines[i].trim();
+    if(!l){i++;continue}
+    var isCont=l.length<50||/^[)\],.;:'"""–—]/.test(l)||/^[a-z]/.test(l)||(merged.length>0&&/[,;:\-–—]$/.test(merged[merged.length-1]));
+    if(isCont&&merged.length>0){merged[merged.length-1]+=' '+l}
+    else{merged.push(l)}
+    i++}
+  return merged.join('</p><p>').trim()}
 
-function setNav(opts){var n=document.getElementById('bottomNav');if(!opts){n.classList.remove('active');document.body.classList.remove('has-bottom-nav');return}var h='';if(opts.prev)h+='<a href="#" onclick="'+opts.prev.action+'">← '+opts.prev.label+'</a>';else h+='<div></div>';h+='<span class="center">'+(opts.center||'')+'</span>';if(opts.next)h+='<a href="#" onclick="'+opts.next.action+'">'+opts.next.label+' →</a>';else h+='<div></div>';n.innerHTML=h;n.classList.add('active');document.body.classList.add('has-bottom-nav')}
+function setNav(opts){var n=document.getElementById('bottomNav');if(!opts){n.classList.remove('active');document.body.classList.remove('has-bottom-nav');return}var h='';if(opts.prev)h+='<a href="#" onclick="'+opts.prev.action+'">← '+opts.prev.label+'</a>';else h+='<div></div>';h+='<span class="center">'+(opts.center||'')+'</span>';if(opts.next)h+='<a href="#" onclick="'+opts.next.action+'">'+opts.next.label+' →</a>';else h+='<div></div>';
+  var ah=parseInt(localStorage.getItem('arrowHint')||'0');if(ah<3&&!('ontouchstart' in window)){h+='<div style="position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:0.75em;opacity:0.4">Use ← → arrow keys to navigate</div>';localStorage.setItem('arrowHint',ah+1)}
+  n.innerHTML=h;n.classList.add('active');document.body.classList.add('has-bottom-nav')}
 
 const COVERS={bg:'en-bg.2e16d0ba.fill-320x508.jpg',sb:'en-sb-1.2e16d0ba.fill-320x508.jpg',cc:'en-cc-adi.2e16d0ba.fill-320x508.jpg',iso:'en-iso.2e16d0ba.fill-320x508.jpg',noi:'en-noi.2e16d0ba.fill-320x508.jpg',nod:'en-nod.2e16d0ba.fill-320x508.jpg',kb:'en-kb.2e16d0ba.fill-320x508.jpg',ssr:'en-ssr.2e16d0ba.fill-320x508.jpg',bbd:'en-bbd.2e16d0ba.fill-320x508.jpg',tlc:'en-tlc.2e16d0ba.fill-320x508.jpg',tlk:'en-tlk.2e16d0ba.fill-320x508.jpg',tqk:'en-tqk.2e16d0ba.fill-320x508.jpg',pop:'en-pop.2e16d0ba.fill-320x508.jpg',poy:'en-poy.2e16d0ba.fill-320x508.jpg',pqpa:'en-pqpa.2e16d0ba.fill-320x508.jpg',rv:'en-rv.2e16d0ba.fill-320x508.jpg',owk:'en-owk.2e16d0ba.fill-320x508.jpg',lob:'en-lob.2e16d0ba.fill-320x508.jpg',bs:'en-bs.2e16d0ba.fill-320x508.jpg',ejop:'en-ejop.2e16d0ba.fill-320x508.jpg',ekc:'en-ekc.2e16d0ba.fill-320x508.jpg',lcfl:'en-lcfl.2e16d0ba.fill-320x508.jpg',rop:'en-rop.2e16d0ba.fill-320x508.jpg',tpm:'en-tpm.2e16d0ba.fill-320x508.jpg',tys:'en-tys.2e16d0ba.fill-320x508.jpg',transcripts:'en-transcripts.png',letters:'en-letters.jpg'};
 const ORDER=['bg','sb','cc','noi','kb','nod','iso','ssr','bbd','bs','owk','pop','poy','pqpa','rv','tlc','tlk','tqk','lob','ejop','ekc','lcfl','rop','tpm','tys'];
@@ -191,7 +209,7 @@ function showLibrary(app){
 }
 
 function showSearch(app,query){
-  var h='<h1 style="font-style:italic">Search</h1><form class="search-form" onsubmit="event.preventDefault();doSearch()"><input type="text" id="searchQuery" value="'+(query||'')+'" placeholder="Search the Vedabase..."><button type="submit">Search</button></form>';
+  var h='<h1>Search</h1><form class="search-form" onsubmit="event.preventDefault();doSearch()"><input type="text" id="searchQuery" value="'+(query||'')+'" placeholder="Search the Vedabase..."><button type="submit">Search</button></form>';
   h+='<div id="searchFilters" style="display:none;margin-bottom:16px"><div style="margin-bottom:8px;font-size:0.85em;opacity:0.7">Filter by:</div>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:6px" id="filterPills"></div></div>';
   h+='<div id="searchResults"></div>';
@@ -262,14 +280,20 @@ async function showBook(slug){
     else label='Chapter '+n;
     h+='<a class="ch-link" href="#" onclick="showVerse(\''+r+'\')">'+label+'</a>'}}
   else if(depth===2){var chs={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!chs[p[0]])chs[p[0]]=0;chs[p[0]]++}for(var c in chs){var ct=CH_TITLES[slug+'/'+c];h+='<a class="ch-link" href="#" onclick="showChapter(\''+slug+'\',\''+c+'\')">Chapter '+c+(ct?': '+ct:'')+'</a>'}}
-  else{var cantos={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!cantos[p[0]])cantos[p[0]]=new Set();if(p[1])cantos[p[0]].add(p[1])}var lbl=slug==='cc'?'Section':'Canto';for(var c in cantos)h+='<a class="ch-link" href="#" onclick="showCanto(\''+slug+'\',\''+c+'\')">'+lbl+' '+c+'</a>'}
+  else{var cantos={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(!cantos[p[0]])cantos[p[0]]=new Set();if(p[1])cantos[p[0]].add(p[1])}
+    var ccNames={'adi':'Ādi-līlā','madhya':'Madhya-līlā','antya':'Antya-līlā'};
+    var ccOrder=['adi','madhya','antya'];
+    var cantoKeys=Object.keys(cantos);if(slug==='cc')cantoKeys.sort(function(a,b){return ccOrder.indexOf(a)-ccOrder.indexOf(b)});
+    for(var ci=0;ci<cantoKeys.length;ci++){var c=cantoKeys[ci];var lbl=ccNames[c]||(slug==='cc'?c:'Canto '+c);h+='<a class="ch-link" href="#" onclick="showCanto(\''+slug+'\',\''+c+'\')">'+lbl+'</a>'}}
   app.innerHTML=h;
 }
 
 async function showCanto(slug,canto){
   var app=document.getElementById('app');setNav(null);var name=BK[slug]||slug;app.innerHTML='<div class="loading">Loading...</div>';
-  var verses=await loadBook(slug);var refs=verses?verses.map(v=>v.ref):[];var lbl=slug==='cc'?'Section':'Canto';
-  var h='<div class="breadcrumb"><a href="#" onclick="navigate(\'library\')">Library</a> » <a href="#" onclick="showBook(\''+slug+'\')">'+name+'</a></div><h1>'+lbl+' '+canto+'</h1>';
+  var verses=await loadBook(slug);var refs=verses?verses.map(v=>v.ref):[];
+  var ccNames={'adi':'Ādi-līlā','madhya':'Madhya-līlā','antya':'Antya-līlā'};
+  var cantoLabel=ccNames[canto]||(slug==='cc'?canto:'Canto '+canto);
+  var h='<div class="breadcrumb"><a href="#" onclick="navigate(\'library\')">Library</a> » <a href="#" onclick="showBook(\''+slug+'\')">'+name+'</a></div><h1>'+cantoLabel+'</h1>';
   var chs={};for(var r of refs){var p=r.replace(slug+'/','').split('/');if(p[0]===canto&&p[1]){if(!chs[p[1]])chs[p[1]]=0;chs[p[1]]++}}
   var sorted=Object.keys(chs).sort((a,b)=>(parseInt(a)||0)-(parseInt(b)||0));
   for(var ch of sorted)h+='<a class="ch-link" href="#" onclick="showChapter(\''+slug+'\',\''+canto+'/'+ch+'\')">Chapter '+ch+'</a>';
@@ -282,14 +306,18 @@ async function showChapter(slug,chPath){
   var vr=refs.filter(r=>r.startsWith(pre)).sort((a,b)=>(parseInt(a.split('/').pop())||0)-(parseInt(b.split('/').pop())||0));
   var pts=chPath.split('/');
   var h='<div class="breadcrumb"><a href="#" onclick="navigate(\'library\')">Library</a> » <a href="#" onclick="showBook(\''+slug+'\')">'+name+'</a>';
-  if(pts.length>1)h+=' » <a href="#" onclick="showCanto(\''+slug+'\',\''+pts[0]+'\')">Canto '+pts[0]+'</a>';
+  if(pts.length>1){var ccN={'adi':'Ādi-līlā','madhya':'Madhya-līlā','antya':'Antya-līlā'};h+=' » <a href="#" onclick="showCanto(\''+slug+'\',\''+pts[0]+'\')">'+(ccN[pts[0]]||'Canto '+pts[0])+'</a>';}
   h+='</div><h1>Chapter '+pts[pts.length-1]+'</h1>';
   for(var ref of vr){var vn=ref.split('/').pop();var v=all.find(x=>x.ref===ref);if(v){var tr=(v.t||'').replace(/\n/g,' ');if(tr.length>300)tr=tr.substring(0,300)+'…';h+='<div class="verse-item"><a href="#" onclick="showVerse(\''+ref+'\')">TEXT '+vn+':</a> '+tr+'</div>'}}
   app.innerHTML=h;window.scrollTo(0,0);
   // Bottom nav
-  var allCh=[...new Set(refs.filter(r=>r.startsWith(slug+'/')).map(r=>{var p=r.replace(slug+'/','').split('/');return p.length>1?p.slice(0,-1).join('/'):null}).filter(Boolean))].sort((a,b)=>{var pa=a.split('/').map(Number),pb=b.split('/').map(Number);for(var i=0;i<Math.max(pa.length,pb.length);i++)if((pa[i]||0)!==(pb[i]||0))return(pa[i]||0)-(pb[i]||0);return 0});
-  var ci=allCh.indexOf(chPath);
-  setNav({prev:ci>0?{label:'Ch '+allCh[ci-1].split('/').pop(),action:"showChapter('"+slug+"','"+allCh[ci-1]+"')"}:null,center:name,next:ci<allCh.length-1?{label:'Ch '+allCh[ci+1].split('/').pop(),action:"showChapter('"+slug+"','"+allCh[ci+1]+"')"}:null});
+  var cantoOrder={'adi':1,'madhya':2,'antya':3};
+  var allCh=[...new Set(refs.filter(r=>r.startsWith(slug+'/')).map(r=>{var p=r.replace(slug+'/','').split('/');return p.length>1?p.slice(0,-1).join('/'):null}).filter(Boolean))].sort((a,b)=>{var pa=a.split('/'),pb=b.split('/');for(var i=0;i<Math.max(pa.length,pb.length);i++){var na=cantoOrder[pa[i]]||parseInt(pa[i])||0,nb=cantoOrder[pb[i]]||parseInt(pb[i])||0;if(na!==nb)return na-nb}return 0});
+  // Only navigate within the same canto/section
+  var curCanto=chPath.split('/').length>1?chPath.split('/')[0]:null;
+  var sameCanto=curCanto?allCh.filter(c=>c.startsWith(curCanto+'/')):allCh;
+  var ci=sameCanto.indexOf(chPath);
+  setNav({prev:ci>0?{label:'Ch '+sameCanto[ci-1].split('/').pop(),action:"showChapter('"+slug+"','"+sameCanto[ci-1]+"')"}:null,center:name,next:ci<sameCanto.length-1?{label:'Ch '+sameCanto[ci+1].split('/').pop(),action:"showChapter('"+slug+"','"+sameCanto[ci+1]+"')"}:null});
 }
 
 async function showVerse(ref,highlight){
@@ -298,11 +326,17 @@ async function showVerse(ref,highlight){
   if(!v){app.innerHTML='<div class="error">Verse not found</div>';return}
   var name=BK[slug]||slug;var vn=ref.replace(slug+'/','');var pts=vn.split('/');
   var isLetter=(slug==='letters'||slug==='transcripts');
-  var isCh=!isLetter&&!v.v&&!v.s&&/^Chapter\s+\d+$/i.test((v.t||'').trim());
+  var tt=(v.t||'').trim();
+  var isCh=!isLetter&&!v.v&&!v.s&&(
+    /^(Chapter\s+\d+|CHAPTER\s+[\w-]+|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY[\w-]*|THIRTY[\w-]*|FORTY[\w-]*|FIFTY[\w-]*|\d+)$/i.test(tt)||
+    (!tt&&/^(Chapter\s+\d+|CHAPTER\s+[\w-]+)\n/i.test(v.p||'')));
   var h='<div class="breadcrumb"><a href="#" onclick="navigate(\'library\')">Library</a> » <a href="#" onclick="showBook(\''+slug+'\')">'+name+'</a></div>';
   if(isCh){
     h+='<h1>'+name+'</h1><p style="text-align:center;font-size:1.2em">Chapter '+pts[0]+'</p>';
-    if(v.p){var pur=v.p.replace(/^Chapter\s+\d+\n/i,'');var lines=pur.split('\n');if(lines[0]&&lines[0].length<60&&/^[A-Z]/.test(lines[0])){h+='<h2 style="text-align:center">'+lines[0]+'</h2>';pur=lines.slice(1).join('\n')}h+='<p>'+joinLines(pur)+'</p>'}
+    if(v.p){var pur=v.p;
+      pur=pur.replace(/^(Chapter\s*\w*\s*\d*|CHAPTER\s+[\w-]+|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY[\w-]*|THIRTY[\w-]*|FORTY[\w-]*|FIFTY[\w-]*|\d+)\s*\n/i,'');
+      var plines=pur.split('\n');if(plines[0]&&plines[0].length<80&&/^[A-ZŚ]/.test(plines[0])){h+='<h2 style="text-align:center">'+plines[0]+'</h2>';pur=plines.slice(1).join('\n')}
+      h+='<p>'+joinLines(pur)+'</p>'}
   } else if(isLetter){
     var title=(v.t||'').replace(/\n.*/,'');
     h+='<h1 style="font-size:1.5em">'+title+'</h1>';
@@ -339,14 +373,44 @@ async function showVerse(ref,highlight){
       else h+='<p>'+body.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')+'</p>'}
   } else {
     var vnLabel=vn.replace(/\//g,'.');var isSingleLevel=pts.length===1;
-    if(isSingleLevel&&(slug==='iso'))vnLabel='Mantra '+vn;
+    if(/^preface$/i.test(vn))vnLabel='Preface';
+    else if(/^introduction$/i.test(vn))vnLabel='Introduction';
+    else if(/^foreword$/i.test(vn))vnLabel='Foreword';
+    else if(isSingleLevel&&(slug==='iso'))vnLabel='Mantra '+vn;
+    else if(isSingleLevel&&(slug==='noi'))vnLabel='Text '+vn;
     else if(isSingleLevel)vnLabel='Chapter '+vn;
     h+='<h1>'+name+'</h1><p style="text-align:center;font-size:1.2em;margin-bottom:16px">'+vnLabel+'</p>';
+    // Parse embedded sections (NOI-style: Devanagari/Verse text/Synonyms/Translation/Purport in p field)
+    if(!v.v&&!v.s&&v.p&&/\nVerse text\n/.test(v.p)){
+      var secs={},curSec='header',secLines=[];
+      v.p.split('\n').forEach(function(ln){
+        if(/^(Devanagari|Verse text|Synonyms|Translation|Purport)$/.test(ln.trim())){if(secLines.length)secs[curSec]=secLines.join('\n');curSec=ln.trim();secLines=[]}
+        else secLines.push(ln)});
+      if(secLines.length)secs[curSec]=secLines.join('\n');
+      if(secs['Devanagari'])h+='<div style="text-align:center;font-size:1.15em;margin:1em 0 0.5em;white-space:pre-line">'+secs['Devanagari']+'</div>';
+      if(secs['Verse text'])h+='<div class="verse-text">'+secs['Verse text']+'</div>';
+      if(secs['Synonyms']){var syn=secs['Synonyms'].replace(/\n(—)/g,' $1').replace(/;\n/g,'; ').replace(/(^|;\s*)([^—;]+?)\s*(—)/g,'$1<i>$2</i> $3');h+='<h2>Synonyms</h2><div class="synonyms">'+syn+'</div>'}
+      if(secs['Translation'])h+='<h2>Translation</h2><div class="translation">'+joinLines(secs['Translation'])+'</div>';
+      if(secs['Purport'])h+='<h2>Purport</h2><p>'+joinLines(secs['Purport'])+'</p>';
+    } else {
     if(v.d)h+='<div style="text-align:center;font-size:1.15em;margin:1em 0 0.5em;white-space:pre-line">'+v.d+'</div>';
-    if(v.v){var vw=v.v.split(' '),vl=vw.length,q=Math.ceil(vl/4);var vt=[];for(var vi=0;vi<vl;vi+=q)vt.push(vw.slice(vi,vi+q).join(' '));h+='<div class="verse-text">'+vt.join('\n')+'</div>';}
+    if(v.v){var vw=v.v.split(' '),vl=vw.length,np=slug==='cc'?2:4,q=Math.ceil(vl/np);var vt=[];for(var vi=0;vi<vl;vi+=q)vt.push(vw.slice(vi,vi+q).join(' '));h+='<div class="verse-text">'+vt.join('\n')+'</div>';}
     if(v.s){var syn=v.s.replace(/\n(—)/g,' $1').replace(/;\n/g,'; ').replace(/(^|;\s*)([^—;]+?)\s*(—)/g,'$1<i>$2</i> $3');h+='<h2>Synonyms</h2><div class="synonyms">'+syn+'</div>';}
-    if(v.t)h+='<h2>Translation</h2><div class="translation">'+joinLines(v.t)+'</div>';
-    if(v.p)h+='<h2>Purport</h2><p>'+joinLines(v.p)+'</p>';
+    if(v.t&&(v.v||v.s))h+='<h2>Translation</h2><div class="translation">'+joinLines(v.t)+'</div>';
+    if(v.p){var pur=v.p;
+      if(!(v.v||v.s)){
+        // Strip multiline headers: "CHAPTER TWENTY-THREE\nTitle\n", "Chapter One\nTitle\n", "ONE\nTitle\n", "1\nTitle\n", etc.
+        pur=pur.replace(/^(CHAPTER\s+[\w-]+|Chapter\s+[\w-]+|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY[\w-]*|THIRTY[\w-]*|FORTY[\w-]*|FIFTY[\w-]*|NOI\s+\d+|Text\s+[\w-]+|Brahma-saṁhitā|Śrī Brahma-saṁhitā[^\n]*)\s*\n/i,'');
+        // Strip subtitle line (short line before long content)
+        var fl2=pur.split('\n')[0];if(fl2&&fl2.length<80&&/\n/.test(pur)){var nl2=pur.indexOf('\n');if(nl2>0&&pur.substring(nl2+1).trim().length>fl2.length*2)pur=pur.substring(nl2+1)}
+        // Strip inline "Chapter N Title..." or digit-only line
+        pur=pur.replace(/^Chapter\s*\w*\s+\d+\s+/i,'');
+        pur=pur.replace(/^\d+\s*\n/,'');
+        // Strip title prefix
+        var tit=(v.t||'').trim();if(tit&&pur.startsWith(tit))pur=pur.substring(tit.length).replace(/^\s+/,'');
+      } else {h+='<h2>Purport</h2>'}
+      h+='<p>'+joinLines(pur)+'</p>';}
+    }
   }
   app.innerHTML=h;
   if(highlight){var esc=highlight.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');var re=new RegExp('('+esc+')','gi');app.querySelectorAll('.synonyms,.translation,p').forEach(function(el){el.innerHTML=el.innerHTML.replace(re,'<b class="hl">$1</b>')})}
@@ -368,11 +432,12 @@ function showAbout(app){
 navigate('library');
 </script>
 <script>
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator&&!window.__TAURI_INTERNALS__)navigator.serviceWorker.register('sw.js');
 var deferredPrompt;
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block'});
 window.addEventListener('appinstalled',function(){document.getElementById('installBtn').style.display='none';deferredPrompt=null});
 function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(r){deferredPrompt=null;document.getElementById('installBtn').style.display='none'})}}
 if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)document.getElementById('installBtn').style.display='none';
+if(!window.__TAURI_INTERNALS__)document.getElementById('installIcon').style.display='inline';
 </script>
 </html>
